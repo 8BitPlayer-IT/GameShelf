@@ -21,7 +21,7 @@ class GameShelfApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(skin),
       darkTheme: AppTheme.dark(skin),
-      // iOS 1 e Aero sono nati chiari: l'interruttore vale solo per l'originale.
+      // Lucido e Vetro sono nati chiari: l'interruttore vale solo per Semplice.
       themeMode: skin.followsThemeMode ? (ref.watch(themeModeProvider).value ?? ThemeMode.system) : ThemeMode.light,
       // Lo sfondo della grafica sta dietro ogni schermata, che resta trasparente.
       builder: (BuildContext context, Widget? child) => SkinBackground(child: child ?? const SizedBox.shrink()),

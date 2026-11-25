@@ -17,17 +17,17 @@ void main() {
     expect(AppSkin.fromName(null), AppSkin.originale);
     expect(AppSkin.fromName('ios1'), AppSkin.ios1);
     expect(AppSkin.fromName('aero'), AppSkin.aero);
-    expect(AppSkin.fromName('inventata'), AppSkin.originale, reason: 'valore sconosciuto: si torna all\'originale');
+    expect(AppSkin.fromName('inventata'), AppSkin.originale, reason: 'valore sconosciuto: si torna a Semplice');
   });
 
-  test('il nome tecnico resta ios1 anche se la grafica si chiama Apple', () {
+  test('il nome tecnico resta ios1 anche se la grafica si chiama Lucido', () {
     // È il valore salvato nella tabella `settings`: cambiarlo farebbe perdere
     // la scelta a chi ha già l'app installata.
     expect(AppSkin.ios1.name, 'ios1');
-    expect(AppSkin.ios1.label, 'Apple');
+    expect(AppSkin.ios1.label, 'Lucido');
   });
 
-  test('solo l\'originale segue l\'interruttore chiaro/scuro', () {
+  test('solo Semplice segue l\'interruttore chiaro/scuro', () {
     expect(AppSkin.originale.followsThemeMode, isTrue);
     expect(AppSkin.ios1.followsThemeMode, isFalse);
     expect(AppSkin.aero.followsThemeMode, isFalse);
@@ -43,7 +43,7 @@ void main() {
     }
   });
 
-  test('Apple e Aero hanno barre sfumate e pannelli chiari, l\'originale no', () {
+  test('Lucido e Vetro hanno barre sfumate e pannelli chiari, Semplice no', () {
     final SkinTokens ios = AppTheme.light(AppSkin.ios1).extension<SkinTokens>()!;
     final SkinTokens aero = AppTheme.light(AppSkin.aero).extension<SkinTokens>()!;
     final SkinTokens base = AppTheme.light(AppSkin.originale).extension<SkinTokens>()!;
@@ -61,14 +61,14 @@ void main() {
   });
 
   group('testo appoggiato sullo sfondo della grafica', () {
-    test('su Aero è chiaro, su Apple è scuro: segue il suo sfondo', () {
+    test('su Vetro è chiaro, su Lucido è scuro: segue il suo sfondo', () {
       final SkinTokens aero = AppTheme.light(AppSkin.aero).extension<SkinTokens>()!;
       final SkinTokens ios = AppTheme.light(AppSkin.ios1).extension<SkinTokens>()!;
-      // Il blu notte dei pannelli sul blu dello sfondo era il difetto: su Aero
+      // Il blu notte dei pannelli sul blu dello sfondo era il difetto: su Vetro
       // fuori dai pannelli il testo va chiaro.
       expect(aero.onBackdrop.computeLuminance(), greaterThan(0.8));
       expect(aero.onBackdrop.computeLuminance(), greaterThan(aero.onPanel.computeLuminance()));
-      // Apple ha lo sfondo a righine chiare: lì il testo resta scuro.
+      // Lucido ha lo sfondo a righine chiare: lì il testo resta scuro.
       expect(ios.onBackdrop.computeLuminance(), lessThan(0.3));
     });
 
@@ -90,7 +90,7 @@ void main() {
 
     test('dove lo sfondo si schiarisce il testo ha un\'ombra che lo stacca', () {
       final SkinTokens aero = AppTheme.light(AppSkin.aero).extension<SkinTokens>()!;
-      // L'angolo più chiaro della sfumatura Aero (widgets.dart, SkinBackground).
+      // L'angolo più chiaro della sfumatura di Vetro (widgets.dart, SkinBackground).
       const Color chiaro = Color(0xFF5AA6E8);
       expect(
         _contrast(aero.onBackdrop, chiaro),
@@ -142,9 +142,31 @@ void main() {
     expect(aero.copyWith().onBackdrop, aero.onBackdrop);
   });
 
-  test('anche in tema scuro Apple e Aero restano chiari', () {
+  test('anche in tema scuro Lucido e Vetro restano chiari', () {
     expect(AppTheme.dark(AppSkin.ios1).colorScheme.brightness, Brightness.light);
     expect(AppTheme.dark(AppSkin.aero).colorScheme.brightness, Brightness.light);
     expect(AppTheme.dark(AppSkin.originale).colorScheme.brightness, Brightness.dark);
+  });
+
+  test('le etichette delle grafiche non usano marchi altrui ne nomi di persone', () {
+    // Descrivere a cosa somiglia una grafica è lecito, e nei commenti del codice
+    // lo si fa. Usare il nome di un'azienda come nome di una funzione dell'app, o
+    // il nome di una persona reale per darle colore, è un'altra cosa: suggerisce
+    // un rapporto che non esiste. Le etichette descrivono l'aspetto e basta.
+    const List<String> vietati = <String>[
+      'apple', 'iphone', 'ios', 'mac', 'jobs',
+      'windows', 'microsoft', 'vista', 'aero',
+      'google', 'android', 'nintendo', 'sony', 'playstation', 'xbox', 'sega',
+    ];
+    for (final AppSkin skin in AppSkin.values) {
+      final String visibile = '${skin.label} ${skin.description}'.toLowerCase();
+      for (final String parola in vietati) {
+        expect(
+          visibile.contains(parola),
+          isFalse,
+          reason: 'la grafica «${skin.label}» cita «$parola» in un testo che l\'utente vede',
+        );
+      }
+    }
   });
 }

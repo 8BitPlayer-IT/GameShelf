@@ -299,7 +299,7 @@ class _DetailView extends ConsumerWidget {
             sliver: SliverList.list(
               children: <Widget>[
                 // Titolo, anno e stato stanno in un pannello come tutto il
-                // resto della scheda: sullo sfondo nudo, su Aero, erano blu
+                // resto della scheda: sullo sfondo nudo, su Vetro, erano blu
                 // notte su blu.
                 SkinPanel(
                   padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),

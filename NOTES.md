@@ -71,7 +71,7 @@ Lo schema è in `lib/data/sql/schema.drift` (versione 5), i passi di migrazione 
 
 - Il testo che finisce **sopra lo sfondo** della grafica (titoli della libreria,
   schermate vuote, note, rotelle) usa `onBackdrop` / `onBackdropMuted` /
-  `backdropAccent` e le ombre `backdropShadows`, non `onSurface`: su Aero lo sfondo
+  `backdropAccent` e le ombre `backdropShadows`, non `onSurface`: su Vetro lo sfondo
   è blu profondo e il blu notte dei pannelli ci sparisce dentro. Dentro un pannello
   o una Card vale il contrario: lì il colore giusto resta `onPanel`.
 - `backdropBase` è il colore con cui una sfumatura può **morire dentro** lo sfondo.

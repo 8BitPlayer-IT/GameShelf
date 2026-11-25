@@ -380,7 +380,7 @@ void showMessage(BuildContext context, String message) {
     ..showSnackBar(SnackBar(content: Text(message)));
 }
 
-/// Sfondo della grafica attiva: le righine di Apple, la sfumatura blu di Aero,
+/// Sfondo della grafica attiva: le righine di Lucido, la sfumatura blu di Vetro,
 /// la tinta piatta dell'originale.
 ///
 /// Sta sia dietro tutta l'app sia dentro ogni rotta aperta con [skinnedRoute]:
@@ -457,7 +457,7 @@ class _PinstripePainter extends CustomPainter {
   bool shouldRepaint(_PinstripePainter oldDelegate) => false;
 }
 
-/// Sfondo delle barre in alto e in basso. Su Aero è vetro smerigliato vero:
+/// Sfondo delle barre in alto e in basso. Sulla grafica Vetro è smerigliato per davvero:
 /// sfoca ciò che ci passa sotto.
 class SkinBarBackground extends StatelessWidget {
   const SkinBarBackground({super.key, this.bottom = false});
@@ -485,7 +485,7 @@ class SkinBarBackground extends StatelessWidget {
 }
 
 /// Riquadro nello stile della grafica attiva: bianco bordato in iOS 1, vetro in
-/// Aero, superficie piatta nell'originale.
+/// Vetro, superficie piatta su Semplice.
 class SkinPanel extends StatelessWidget {
   const SkinPanel({super.key, required this.child, this.padding});
 

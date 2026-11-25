@@ -7,16 +7,16 @@ import '../domain/enums.dart';
 /// Le tre grafiche selezionabili in Impostazioni.
 enum AppSkin {
   /// Material 3, con tema chiaro e scuro.
-  originale('Originale', 'Moderno, scelta tra chiaro e scuro'),
+  originale('Semplice', 'Moderno, scelta tra chiaro e scuro'),
 
   /// iPhone 2007: righine, barre blu lucide, pulsanti in vetro.
   ///
-  /// Il nome visibile è «Apple», ma il nome tecnico resta `ios1`: è quello
+  /// Il nome visibile è «Lucido», ma il nome tecnico resta `ios1`: è quello
   /// salvato in `settings`, e cambiarlo farebbe perdere la scelta a chi ce l'ha.
-  ios1('Apple', "Rivivi l'era di Jobs"),
+  ios1('Lucido', 'I tasti lucidi dei primi telefoni touch'),
 
   /// Windows Vista / 7: sfondo blu e pannelli di vetro smerigliato.
-  aero('Aero', 'Colorato e vivace');
+  aero('Vetro', 'Il vetro smerigliato dei computer di fine anni Duemila');
 
   const AppSkin(this.label, this.description);
 
@@ -78,7 +78,7 @@ class SkinTokens extends ThemeExtension<SkinTokens> {
   /// Testo e icone appoggiati direttamente sullo sfondo della grafica, cioè
   /// fuori da pannelli e barre: titoli della libreria, schermate vuote, note.
   ///
-  /// Non è `onPanel`: su Aero lo sfondo è blu profondo e il blu notte dei
+  /// Non è `onPanel`: su Vetro lo sfondo è blu profondo e il blu notte dei
   /// pannelli ci sparisce dentro.
   final Color onBackdrop;
 
@@ -89,7 +89,7 @@ class SkinTokens extends ThemeExtension<SkinTokens> {
   /// Colore vivo sopra lo sfondo: rotelle di caricamento e titoli di sezione.
   final Color backdropAccent;
 
-  /// Ombra sotto al testo appoggiato sullo sfondo: su Aero stacca le lettere
+  /// Ombra sotto al testo appoggiato sullo sfondo: su Vetro stacca le lettere
   /// chiare dalle zone più chiare della sfumatura.
   final List<Shadow> backdropShadows;
 
@@ -216,7 +216,7 @@ class SkinTokens extends ThemeExtension<SkinTokens> {
 
 /// Dissolvenza con una leggera scala, senza traslazione: le due pagine non
 /// scorrono, quindi i loro sfondi restano sovrapposti e non si vede nessuna
-/// giunzione. È la transizione della grafica Aero.
+/// giunzione. È la transizione della grafica Vetro, il cui identificativo resta `aero`.
 class AeroPageTransitionsBuilder extends PageTransitionsBuilder {
   const AeroPageTransitionsBuilder();
 

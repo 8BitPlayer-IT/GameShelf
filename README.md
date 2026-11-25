@@ -24,8 +24,8 @@ quale console, in che formato, e che voto gli daresti.
   commercio, e te la propone. Dalle impostazioni si possono cercare in blocco per tutta la
   libreria. Viene proposta solo una corrispondenza certa: nel dubbio nessuna copertina.
 - **Backup e ripristino** in un unico file ZIP che contiene database e copertine, da salvare dove vuoi.
-- **Tre grafiche**: Originale (Material 3, con tema chiaro e scuro), Apple (come il primo iPhone) e
-  Aero (come Windows Vista e 7).
+- **Tre grafiche**: Semplice (Material 3, con tema chiaro e scuro), Lucido (i tasti lucidi dei
+  primi telefoni touch) e Vetro (il vetro smerigliato di fine anni Duemila).
 - **Widget per la schermata home** che mostra la copertina di un gioco a caso e cambia ogni ora.
 
 ## Privacy
