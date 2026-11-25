@@ -46,3 +46,5 @@ Le modifiche piccole e mirate hanno molte più probabilità di essere accettate 
 - Dipendenze nuove senza una ragione forte: ogni pacchetto è peso e manutenzione.
 - Qualunque cosa richieda un account, un server o una chiave API per funzionare.
 - Pubblicità, statistiche d'uso, telemetria.
+- La rimozione della riga di attribuzione all'autore nelle impostazioni: è richiesta dalla
+  licenza (vedi il termine aggiuntivo nel [README](README.md)), non è una preferenza estetica.

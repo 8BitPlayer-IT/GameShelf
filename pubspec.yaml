@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 5.4.0+5
+version: 5.5.0+6
 
 environment:
   sdk: ^3.13.3
@@ -75,6 +75,9 @@ flutter:
   # Icone delle console, generate da tool/slice_console_icons.dart e ...2.dart.
   assets:
     - assets/consoles/
+    # Icona dell'app per la riga di intestazione nelle impostazioni: è la stessa
+    # del lanciatore (192 px), copiata da android/app/src/main/res/mipmap-xxxhdpi.
+    - assets/icona_app.png
     # Indici dei nomi delle copertine di Libretro (96.505 nomi, 0,9 MB compressi),
     # generati da tool/genera_indici_copertine.dart: la ricerca del nome giusto
     # avviene senza rete, che serve solo a scaricare l'immagine trovata.

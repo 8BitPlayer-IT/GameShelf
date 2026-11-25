@@ -14,4 +14,4 @@
 /// `version: <questa stringa>+<numero di build>`: il numero di build deve
 /// crescere a ogni APK, altrimenti Android rifiuta l'aggiornamento.
 /// Se i due si scostano, `test/app/version_test.dart` diventa rosso.
-const String appVersion = '5.4.0';
+const String appVersion = '5.5.0';

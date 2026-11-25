@@ -115,6 +115,42 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
         children: <Widget>[
           if (_busy) const LinearProgressIndicator(),
+
+          // ATTRIBUZIONE ALL'AUTORE — NON RIMUOVERE.
+          //
+          // Questa riga non è decorazione: è l'attribuzione richiesta dal termine
+          // aggiuntivo che accompagna la licenza, ai sensi dell'articolo 7(b)
+          // della GPL-3.0 (vedi la sezione «Licenza» del README). Chi
+          // ridistribuisce GameShelf, modificato o no, deve conservarla.
+          // Toglierla non è una modifica: è una violazione della licenza.
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: <Widget>[
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(14),
+                    child: Image.asset('assets/icona_app.png', width: 56, height: 56, cacheWidth: 168),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text('GameShelf', style: theme.textTheme.titleLarge),
+                        const SizedBox(height: 2),
+                        Text(
+                          'di Andrea Piva (8BitPlayer-IT)',
+                          style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
           header('Aspetto'),
           Card(
             child: Padding(

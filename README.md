@@ -90,12 +90,29 @@ flutter build apk --release --split-per-abi
 Senza un file `android/key.properties` la build usa la chiave di debug del tuo computer: va benissimo
 per provare l'app sul tuo telefono.
 
-## Licenza
+## Licenza e autore
 
-GPL-3.0-or-later. Vedi [LICENSE](LICENSE).
+GameShelf è stato progettato e scritto da **Andrea Piva (8BitPlayer-IT)**.
 
-In breve: puoi usare, studiare e modificare questa app liberamente, e puoi ridistribuirla — anche
-modificata — a patto di pubblicare a tua volta il codice sorgente sotto la stessa licenza.
+Copyright (C) 2026 Andrea Piva (8BitPlayer-IT)
+
+Licenza: **GPL-3.0-or-later**. Il testo completo è nel file [LICENSE](LICENSE).
+
+In breve: puoi usare, studiare e modificare questa app liberamente, e puoi ridistribuirla —
+anche modificata — a patto di pubblicare a tua volta il codice sorgente sotto la stessa licenza.
+
+### Termine aggiuntivo sull'attribuzione
+
+L'**articolo 7(b)** della GPL-3.0 permette di richiedere che le attribuzioni all'autore vengano
+conservate. Questo programma è distribuito con il seguente termine aggiuntivo:
+
+> Chi ridistribuisce GameShelf, modificato o no, in forma di codice sorgente o di programma
+> compilato, deve conservare l'attribuzione all'autore originale — «di Andrea Piva
+> (8BitPlayer-IT)», oppure «basato su GameShelf, di Andrea Piva (8BitPlayer-IT)» se l'opera
+> viene rinominata — nella schermata delle impostazioni dell'applicazione e in questo file.
+
+Non toglie niente alla libertà del software: puoi forkare, cambiare, rinominare, vendere e
+ridistribuire quello che vuoi. Devi solo non cancellare chi l'ha scritto.
 
 ## Crediti e marchi
 
