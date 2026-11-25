@@ -75,6 +75,10 @@ flutter:
   # Icone delle console, generate da tool/slice_console_icons.dart e ...2.dart.
   assets:
     - assets/consoles/
+    # Indici dei nomi delle copertine di Libretro (96.505 nomi, 0,9 MB compressi),
+    # generati da tool/genera_indici_copertine.dart: la ricerca del nome giusto
+    # avviene senza rete, che serve solo a scaricare l'immagine trovata.
+    - assets/copertine/
 
   # To add assets to your application, add an assets section, like this:
   # assets:
