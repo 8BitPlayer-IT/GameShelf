@@ -1,0 +1,73 @@
+# Verifica automatica a ogni modifica: analisi statica, test e build dell'APK.
+#
+# Le versioni della toolchain sono bloccate e verificate insieme (TOOLCHAIN.md):
+# qui Flutter e' fissato alla stessa versione usata in locale. Se cambia la', cambia qui.
+name: Verifica
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# Una modifica subito dopo un'altra annulla la verifica precedente, che e' gia' vecchia.
+concurrency:
+  group: verifica-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION: 3.47.3
+
+jobs:
+  analisi-e-test:
+    name: Analisi e test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      # I test del database aprono SQLite vero tramite drift.
+      - name: SQLite di sistema
+        run: sudo apt-get update && sudo apt-get install -y libsqlite3-0
+
+      - run: flutter pub get
+
+      # Deve restare a zero problemi: qui un avviso fa fallire la verifica.
+      - run: flutter analyze
+
+      - run: flutter test
+
+  build-android:
+    name: Build dell'APK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+
+      # Qui non c'e' android/key.properties, quindi Gradle ripiega sulla chiave di debug
+      # del runner: serve a verificare che il progetto compili, non a distribuire nulla.
+      - run: flutter build apk --release --split-per-abi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: apk-di-prova-firma-di-debug
+          path: build/app/outputs/flutter-apk/*-release.apk
+          if-no-files-found: error
+          retention-days: 14

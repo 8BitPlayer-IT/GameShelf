@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cover_widget_name">Copertine GameShelf</string>
+    <string name="cover_widget_description">Una copertina della tua libreria, diversa ogni ora</string>
+    <string name="cover_widget_empty">Aggiungi una copertina in GameShelf</string>
+</resources>

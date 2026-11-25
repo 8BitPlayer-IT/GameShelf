@@ -1,0 +1,281 @@
+-- Schema di GameShelf — versione 3.
+--
+-- Le regole stanno qui dentro, non nel codice Dart: un vincolo nel database vale per
+-- ogni strada (interfaccia, ripristino di un backup, futura correzione a mano) mentre
+-- un controllo in Dart si può sempre aggirare per sbaglio.
+--
+-- Convenzioni: identificatori in inglese, valori di dominio in italiano (sono gli
+-- stessi che finiscono nel file di backup e che l'utente legge nell'app).
+--
+-- Nota sulle chiavi esterne: qui si usa NO ACTION (cioè nessuna clausola ON DELETE)
+-- invece di RESTRICT dove serve solo impedire la cancellazione di qualcosa in uso.
+-- I due si comportano allo stesso modo nell'uso normale, ma RESTRICT non è
+-- rinviabile: scatterebbe anche dentro il ripristino di un backup, che azzera e
+-- riscrive tutto con PRAGMA defer_foreign_keys = ON.
+
+-- ---------------------------------------------------------------------------
+-- Cataloghi
+--
+-- name_norm è la forma normalizzata (minuscolo, senza accenti né punteggiatura):
+-- essendo UNIQUE impedisce i doppioni tipo «Nintendo» / «nintendo» / «NINTENDO».
+-- ---------------------------------------------------------------------------
+
+CREATE TABLE consoles (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL CHECK (length(trim(name)) > 0),
+    name_norm TEXT NOT NULL UNIQUE,
+    -- Il limite di 10 caratteri vale sulla stringa davvero salvata, perché è quella
+    -- che viene disegnata nel badge della console; in più non può essere tutta spazi.
+    short_label TEXT NOT NULL
+        CHECK (length(short_label) BETWEEN 1 AND 10 AND trim(short_label) <> ''),
+    family TEXT NOT NULL DEFAULT 'altro'
+        CHECK (family IN ('nintendo', 'playstation', 'xbox', 'sega', 'pc', 'altro')),
+    sort_order INTEGER NOT NULL DEFAULT 1000
+) AS ConsoleRow;
+
+CREATE TABLE genres (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL CHECK (length(trim(name)) > 0),
+    name_norm TEXT NOT NULL UNIQUE
+) AS Genre;
+
+CREATE TABLE series (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL CHECK (length(trim(name)) > 0),
+    name_norm TEXT NOT NULL UNIQUE
+) AS SeriesRow;
+
+-- Sviluppatori e publisher condividono una sola tabella: la stessa azienda fa spesso
+-- entrambi i ruoli (Nintendo sviluppa e pubblica), e tenerle separate creerebbe due
+-- voci scollegate da rinominare due volte.
+CREATE TABLE companies (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL CHECK (length(trim(name)) > 0),
+    name_norm TEXT NOT NULL UNIQUE
+) AS Company;
+
+-- ---------------------------------------------------------------------------
+-- Giochi
+-- ---------------------------------------------------------------------------
+
+CREATE TABLE games (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+
+    title TEXT NOT NULL CHECK (length(trim(title)) > 0),
+    -- Forma normalizzata per la ricerca: «pokemon» deve trovare «Pokémon».
+    title_norm TEXT NOT NULL,
+    -- Chiave di ordinamento: numeri riempiti di zeri e articolo iniziale tolto,
+    -- così «FIFA 9» viene prima di «FIFA 23» e «The Last of Us» si ordina alla L.
+    sort_title TEXT NOT NULL,
+
+    series_id INTEGER REFERENCES series (id) ON DELETE SET NULL,
+    developer_id INTEGER REFERENCES companies (id) ON DELETE SET NULL,
+    publisher_id INTEGER REFERENCES companies (id) ON DELETE SET NULL,
+    -- Può restare vuoto: «anno sconosciuto» è uno stato legittimo.
+    release_year INTEGER CHECK (release_year IS NULL OR release_year BETWEEN 1950 AND 2100),
+
+    status TEXT NOT NULL DEFAULT 'backlog'
+        CHECK (status IN ('backlog', 'arcade', 'abbandonato', 'in_corso', 'finito', 'completato')),
+
+    -- BOOLEAN in Dart diventa `bool`, ma drift NON aggiunge alcun vincolo alle
+    -- colonne dichiarate in un file .drift: il CHECK va scritto a mano, altrimenti
+    -- un valore diverso da 0/1 verrebbe letto come `true` in Dart mentre tutti i
+    -- confronti « = 1 » in SQL (viste, trigger, statistiche) risulterebbero falsi.
+    is_replayable BOOLEAN NOT NULL DEFAULT FALSE CHECK (is_replayable IN (0, 1)),
+    has_post_game BOOLEAN NOT NULL DEFAULT FALSE CHECK (has_post_game IN (0, 1)),
+    has_achievements BOOLEAN NOT NULL DEFAULT FALSE CHECK (has_achievements IN (0, 1)),
+    all_achievements_unlocked BOOLEAN NOT NULL DEFAULT FALSE
+        CHECK (all_achievements_unlocked IN (0, 1)),
+    has_dlc BOOLEAN NOT NULL DEFAULT FALSE CHECK (has_dlc IN (0, 1)),
+
+    -- Una raccolta che contiene altri giochi (vedi collection_items). Dalla v3 un
+    -- gioco può stare in più collection e avere comunque copie proprie.
+    is_collection BOOLEAN NOT NULL DEFAULT FALSE CHECK (is_collection IN (0, 1)),
+
+    -- Voti 0-10 a mezzi punti. Il CHECK sul doppio esclude valori come 7,3:
+    -- 7,5 * 2 = 15 è intero, 7,3 * 2 = 14,6 no.
+    rating_story REAL CHECK (rating_story IS NULL
+        OR (rating_story BETWEEN 0 AND 10 AND rating_story * 2 = CAST(rating_story * 2 AS INTEGER))),
+    rating_gameplay REAL CHECK (rating_gameplay IS NULL
+        OR (rating_gameplay BETWEEN 0 AND 10 AND rating_gameplay * 2 = CAST(rating_gameplay * 2 AS INTEGER))),
+    rating_graphics REAL CHECK (rating_graphics IS NULL
+        OR (rating_graphics BETWEEN 0 AND 10 AND rating_graphics * 2 = CAST(rating_graphics * 2 AS INTEGER))),
+    rating_soundtrack REAL CHECK (rating_soundtrack IS NULL
+        OR (rating_soundtrack BETWEEN 0 AND 10 AND rating_soundtrack * 2 = CAST(rating_soundtrack * 2 AS INTEGER))),
+
+    -- Voto complessivo: media delle sole categorie valutate, calcolata dal database
+    -- così interfaccia, ordinamenti e statistiche non possono divergere.
+    -- Il « * 1.0 » è obbligatorio: fra interi SQLite troncherebbe, e la media di
+    -- 9, 8 e 7 diventerebbe 8 invece di 8,0. Nessuna categoria valutata = NULL,
+    -- che non è zero: un gioco non valutato va in fondo, non in cima.
+    overall_rating REAL GENERATED ALWAYS AS (
+        CASE
+            WHEN COALESCE(rating_story, rating_gameplay, rating_graphics, rating_soundtrack) IS NULL
+                THEN NULL
+            ELSE (COALESCE(rating_story, 0) + COALESCE(rating_gameplay, 0)
+                  + COALESCE(rating_graphics, 0) + COALESCE(rating_soundtrack, 0)) * 1.0
+                 / ((rating_story IS NOT NULL) + (rating_gameplay IS NOT NULL)
+                    + (rating_graphics IS NOT NULL) + (rating_soundtrack IS NOT NULL))
+        END
+    ) VIRTUAL,
+
+    -- Percorso RELATIVO alla cartella documenti dell'app: un percorso assoluto
+    -- si romperebbe dopo un ripristino, una reinstallazione o un cambio telefono.
+    cover_path TEXT,
+
+    created_at DATETIME NOT NULL DEFAULT (unixepoch()),
+    updated_at DATETIME NOT NULL DEFAULT (unixepoch()),
+
+    -- Numero massimo di giocatori (1, 2 o 4), vuoto se non indicato.
+    players INTEGER CHECK (players IS NULL OR players IN (1, 2, 4)),
+
+    -- «Tutti gli achievement sbloccati» non ha senso senza achievement.
+    CHECK (all_achievements_unlocked = 0 OR has_achievements = 1)
+) AS Game;
+
+-- Una riga per ogni supporto posseduto: sulla stessa console si possono avere sia
+-- la cartuccia sia la versione digitale, ma non due volte la stessa combinazione.
+CREATE TABLE game_copies (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    game_id INTEGER NOT NULL REFERENCES games (id) ON DELETE CASCADE,
+    console_id INTEGER NOT NULL REFERENCES consoles (id),
+    format TEXT NOT NULL CHECK (format IN ('fisico', 'digitale')),
+    UNIQUE (game_id, console_id, format)
+) AS GameCopy;
+
+-- Appartenenza di un gioco a una raccolta. Dalla v3 è una tabella a parte e non più
+-- una colonna sul gioco: lo stesso gioco può stare in più collection (Super Mario 64
+-- in Super Mario 3D All-Stars e in una futura raccolta) e nel frattempo possedere
+-- la propria cartuccia, restando un'unica voce con un solo voto.
+CREATE TABLE collection_items (
+    collection_id INTEGER NOT NULL REFERENCES games (id) ON DELETE CASCADE,
+    game_id INTEGER NOT NULL REFERENCES games (id) ON DELETE CASCADE,
+    PRIMARY KEY (collection_id, game_id),
+    -- Un gioco non può contenere sé stesso.
+    CHECK (collection_id <> game_id)
+) AS CollectionItem;
+
+-- Console di uscita originale di un gioco (per esempio Super Mario 64 è uscito su
+-- N64 anche se lo possiedi dentro una raccolta per Switch). È un'informazione sul
+-- gioco, non una copia posseduta: non conta nelle statistiche delle copie.
+CREATE TABLE game_platforms (
+    game_id INTEGER NOT NULL REFERENCES games (id) ON DELETE CASCADE,
+    console_id INTEGER NOT NULL REFERENCES consoles (id),
+    PRIMARY KEY (game_id, console_id)
+) AS GamePlatform;
+
+CREATE TABLE game_genres (
+    game_id INTEGER NOT NULL REFERENCES games (id) ON DELETE CASCADE,
+    genre_id INTEGER NOT NULL REFERENCES genres (id),
+    PRIMARY KEY (game_id, genre_id)
+) AS GameGenre;
+
+-- Preferenze dell'app: stanno nel database (e non in shared_preferences) così
+-- finiscono automaticamente dentro il file di backup.
+-- `key` è parola riservata nel parser SQL di drift: la chiave si chiama `name`.
+CREATE TABLE settings (
+    name TEXT NOT NULL PRIMARY KEY,
+    value TEXT NOT NULL
+) AS Setting;
+
+-- ---------------------------------------------------------------------------
+-- Viste
+-- ---------------------------------------------------------------------------
+
+-- Copie «efficaci»: quelle possedute direttamente più quelle delle raccolte a cui
+-- il gioco appartiene. UNION e non UNION ALL: se possiedi un gioco su una console
+-- sia da solo sia dentro una raccolta, la coppia console/formato compare una volta.
+CREATE VIEW effective_copies AS
+    SELECT c.game_id AS game_id, c.console_id AS console_id, c.format AS format
+    FROM game_copies c
+    UNION
+    SELECT ci.game_id AS game_id, c.console_id AS console_id, c.format AS format
+    FROM collection_items ci
+    JOIN game_copies c ON c.game_id = ci.collection_id;
+
+-- Console di ogni gioco come le mostra e le filtra la libreria: le copie efficaci
+-- più la console di uscita, che non ha formato.
+CREATE VIEW game_consoles AS
+    SELECT game_id, console_id, format FROM effective_copies
+    UNION ALL
+    SELECT game_id, console_id, NULL AS format FROM game_platforms;
+
+-- I giochi da contare nelle statistiche: tutti tranne le raccolte che contengono
+-- qualcosa (quelle contano attraverso i giochi che contengono, altrimenti un
+-- cofanetto da 3 giochi verrebbe contato 4 volte). Una raccolta vuota resta un
+-- gioco a tutti gli effetti, e un gioco in più raccolte conta una volta sola.
+CREATE VIEW stat_games AS
+    SELECT g.id AS game_id
+    FROM games g
+    WHERE g.is_collection = 0
+       OR NOT EXISTS (SELECT 1 FROM collection_items ci WHERE ci.collection_id = g.id);
+
+-- ---------------------------------------------------------------------------
+-- Indici
+--
+-- Non serve un indice su game_copies (game_id) né sulle colonne iniziali delle
+-- chiavi primarie composte: SQLite ne crea già uno.
+-- ---------------------------------------------------------------------------
+
+CREATE INDEX games_sort_title ON games (sort_title);
+CREATE INDEX games_title_norm ON games (title_norm);
+CREATE INDEX games_status ON games (status);
+CREATE INDEX games_release_year ON games (release_year);
+CREATE INDEX games_overall_rating ON games (overall_rating);
+CREATE INDEX game_copies_console_id ON game_copies (console_id);
+CREATE INDEX game_platforms_console_id ON game_platforms (console_id);
+CREATE INDEX game_genres_genre_id ON game_genres (genre_id);
+CREATE INDEX collection_items_game_id ON collection_items (game_id);
+
+-- ---------------------------------------------------------------------------
+-- Trigger: le regole delle raccolte che i CHECK non possono esprimere, perché
+-- guardano righe diverse da quella scritta.
+--
+-- Attenzione al «fallimento in apertura»: una sottoquery su una riga che non
+-- esiste restituisce NULL, e ogni confronto con NULL è falso. Senza i COALESCE
+-- qui sotto questi trigger lascerebbero passare tutto durante il ripristino di un
+-- backup, che gira con le chiavi esterne rinviate.
+-- ---------------------------------------------------------------------------
+
+-- Si può mettere un gioco solo dentro una raccolta vera.
+CREATE TRIGGER collection_must_be_collection_insert
+BEFORE INSERT ON collection_items
+BEGIN
+    SELECT RAISE(ABORT, 'Un gioco può essere contenuto solo in una collection')
+    WHERE COALESCE((SELECT is_collection FROM games WHERE id = NEW.collection_id), 0) <> 1;
+END;
+
+CREATE TRIGGER collection_must_be_collection_update
+BEFORE UPDATE ON collection_items
+BEGIN
+    SELECT RAISE(ABORT, 'Un gioco può essere contenuto solo in una collection')
+    WHERE COALESCE((SELECT is_collection FROM games WHERE id = NEW.collection_id), 0) <> 1;
+END;
+
+-- Niente raccolte dentro raccolte: le statistiche conterebbero gli stessi giochi
+-- due volte e l'interfaccia dovrebbe gestire livelli infiniti.
+CREATE TRIGGER no_nested_collections
+BEFORE INSERT ON collection_items
+BEGIN
+    SELECT RAISE(ABORT, 'Una collection non può essere contenuta in una collection')
+    WHERE COALESCE((SELECT is_collection FROM games WHERE id = NEW.game_id), 0) = 1;
+END;
+
+-- Un gioco che contiene qualcosa non può diventare un gioco normale: la raccolta
+-- va prima sciolta, scegliendo esplicitamente che fine fanno i suoi contenuti.
+CREATE TRIGGER collection_with_items_cannot_be_demoted
+BEFORE UPDATE ON games
+BEGIN
+    SELECT RAISE(ABORT, 'La collection contiene ancora dei giochi: scioglila prima')
+    WHERE OLD.is_collection = 1 AND NEW.is_collection = 0
+      AND EXISTS (SELECT 1 FROM collection_items ci WHERE ci.collection_id = OLD.id);
+END;
+
+-- Un gioco che sta dentro una raccolta non può diventare a sua volta una raccolta.
+CREATE TRIGGER item_cannot_become_collection
+BEFORE UPDATE ON games
+BEGIN
+    SELECT RAISE(ABORT, 'Una collection non può essere contenuta in una collection')
+    WHERE OLD.is_collection = 0 AND NEW.is_collection = 1
+      AND EXISTS (SELECT 1 FROM collection_items ci WHERE ci.game_id = OLD.id);
+END;

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android 11 e precedenti. Il backup automatico è disattivato (allowBackup="false"):
+  queste regole sono una seconda barriera, perché un ripristino automatico rimetterebbe
+  un database vecchio prima del primo avvio dell'app. Il backup dei dati è il file ZIP
+  esportato dall'utente da Impostazioni.
+-->
+<full-backup-content>
+    <exclude domain="root" />
+    <exclude domain="file" />
+    <exclude domain="database" />
+    <exclude domain="sharedpref" />
+    <exclude domain="external" />
+</full-backup-content>

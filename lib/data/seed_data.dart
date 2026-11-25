@@ -1,0 +1,86 @@
+/// Cataloghi iniziali, inseriti alla creazione del database.
+///
+/// Sono solo un punto di partenza: l'utente può rinominare, unire o eliminare
+/// qualsiasi voce da Impostazioni → Cataloghi, e aggiungerne di nuove al volo
+/// mentre compila la scheda di un gioco.
+library;
+
+typedef SeedConsole = ({String name, String shortLabel, String family});
+
+/// L'ordine di questa lista diventa l'ordine di visualizzazione (sort_order).
+const List<SeedConsole> seedConsoles = <SeedConsole>[
+  (name: 'Nintendo Entertainment System', shortLabel: 'NES', family: 'nintendo'),
+  (name: 'Super Nintendo', shortLabel: 'SNES', family: 'nintendo'),
+  (name: 'Nintendo 64', shortLabel: 'N64', family: 'nintendo'),
+  (name: 'Nintendo GameCube', shortLabel: 'GameCube', family: 'nintendo'),
+  (name: 'Nintendo Wii', shortLabel: 'Wii', family: 'nintendo'),
+  (name: 'Nintendo Wii U', shortLabel: 'Wii U', family: 'nintendo'),
+  (name: 'Nintendo Switch', shortLabel: 'Switch', family: 'nintendo'),
+  (name: 'Nintendo Switch 2', shortLabel: 'Switch 2', family: 'nintendo'),
+  (name: 'Game Boy', shortLabel: 'GB', family: 'nintendo'),
+  (name: 'Game Boy Color', shortLabel: 'GBC', family: 'nintendo'),
+  (name: 'Game Boy Advance', shortLabel: 'GBA', family: 'nintendo'),
+  (name: 'Nintendo DS', shortLabel: 'DS', family: 'nintendo'),
+  (name: 'Nintendo 3DS', shortLabel: '3DS', family: 'nintendo'),
+  (name: 'PlayStation', shortLabel: 'PS1', family: 'playstation'),
+  (name: 'PlayStation 2', shortLabel: 'PS2', family: 'playstation'),
+  (name: 'PlayStation 3', shortLabel: 'PS3', family: 'playstation'),
+  (name: 'PlayStation 4', shortLabel: 'PS4', family: 'playstation'),
+  (name: 'PlayStation 5', shortLabel: 'PS5', family: 'playstation'),
+  (name: 'PlayStation Portable', shortLabel: 'PSP', family: 'playstation'),
+  (name: 'PlayStation Vita', shortLabel: 'PS Vita', family: 'playstation'),
+  (name: 'Xbox', shortLabel: 'Xbox', family: 'xbox'),
+  (name: 'Xbox 360', shortLabel: 'Xbox 360', family: 'xbox'),
+  (name: 'Xbox One', shortLabel: 'Xbox One', family: 'xbox'),
+  (name: 'Xbox Series X|S', shortLabel: 'Xbox X|S', family: 'xbox'),
+  (name: 'Sega Master System', shortLabel: 'SMS', family: 'sega'),
+  (name: 'Sega Mega Drive', shortLabel: 'Mega Drive', family: 'sega'),
+  (name: 'Sega Saturn', shortLabel: 'Saturn', family: 'sega'),
+  (name: 'Sega Dreamcast', shortLabel: 'Dreamcast', family: 'sega'),
+  (name: 'PC', shortLabel: 'PC', family: 'pc'),
+  (name: 'Atari 2600', shortLabel: 'Atari 2600', family: 'altro'),
+  (name: 'Neo Geo', shortLabel: 'Neo Geo', family: 'altro'),
+  (name: 'Android', shortLabel: 'Android', family: 'altro'),
+  (name: 'iOS', shortLabel: 'iOS', family: 'altro'),
+  // Aggiunte dopo la prima versione: le sigle sono quelle già usate in libreria,
+  // così il seeding non crea doppioni su un'installazione esistente.
+  (name: 'Arcade', shortLabel: 'Arcade', family: 'altro'),
+  (name: 'Atari 7800', shortLabel: 'Atari 7800', family: 'altro'),
+  (name: 'IntelliVision', shortLabel: 'IntV', family: 'altro'),
+  (name: 'SEGA CD', shortLabel: 'SEGA CD', family: 'sega'),
+  (name: 'SEGA GameGear', shortLabel: 'SGG', family: 'sega'),
+  (name: 'Commodore 64', shortLabel: 'C64', family: 'pc'),
+  (name: 'Commodore VIC-20', shortLabel: 'Vic20', family: 'pc'),
+  (name: 'Atari 400', shortLabel: 'Atari 400', family: 'pc'),
+  (name: 'Commodore Amiga 500', shortLabel: 'Amiga', family: 'pc'),
+];
+
+const List<String> seedGenres = <String>[
+  'Azione',
+  'Avventura',
+  'Action RPG',
+  'GDR',
+  'Sparatutto',
+  'Sparatutto in prima persona',
+  'Piattaforme',
+  'Picchiaduro',
+  'Corse',
+  'Sport',
+  'Strategia',
+  'Gestionale',
+  'Puzzle',
+  'Horror',
+  'Metroidvania',
+  'Roguelike',
+  'Simulazione',
+  'Musicale',
+  'Party game',
+  'Visual novel',
+  'Punta e clicca',
+  'Stealth',
+  'Souls-like',
+  'Sopravvivenza',
+  'Sandbox',
+  'Tower defense',
+  'Giochi di carte',
+];
