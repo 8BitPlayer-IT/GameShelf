@@ -15,6 +15,7 @@ import '../../data/backup_service.dart';
 import '../../data/catalog_admin.dart';
 import '../../data/settings_repository.dart';
 import '../../ui/widgets.dart';
+import 'bulk_cover_screen.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -166,6 +167,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
             ),
           ),
+          header('Copertine'),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.travel_explore),
+              title: const Text('Cerca le copertine mancanti'),
+              subtitle: const Text('Online, per i giochi che non ne hanno ancora una'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: _busy
+                  ? null
+                  : () => Navigator.of(context).push<void>(
+                      skinnedRoute<void>((_) => const BulkCoverScreen()),
+                    ),
+            ),
+          ),
           header('Backup e ripristino'),
           Card(
             child: Column(
@@ -228,7 +243,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 const ListTile(
                   leading: Icon(Icons.lock_outline),
                   title: Text('Privacy'),
-                  subtitle: Text('Funziona completamente offline: nessun account, nessun dato inviato in rete.'),
+                  subtitle: Text(
+                    'Nessun account, nessuna raccolta di dati, nessuna statistica d\'uso. La libreria '
+                    'resta su questo telefono.\n\n'
+                    'L\'unica cosa che esce dall\'app è il titolo di un gioco (e la sua console), '
+                    'quando cerchi una copertina online: va al negozio che corrisponde a quella '
+                    'console. Senza quella ricerca l\'app non contatta nessuno.',
+                  ),
                 ),
                 ListTile(
                   leading: const Icon(Icons.description_outlined),

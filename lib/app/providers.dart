@@ -7,6 +7,7 @@ import '../data/backup_service.dart';
 import '../data/catalog_admin.dart';
 import '../data/catalog_repository.dart';
 import '../data/cover_service.dart';
+import '../data/covers/online_cover_service.dart';
 import '../data/database.dart';
 import '../data/game_repository.dart';
 import '../data/library_repository.dart';
@@ -29,6 +30,12 @@ final Provider<String> documentsDirProvider = Provider<String>(
 
 final Provider<CoverService> coverServiceProvider = Provider<CoverService>(
   (Ref ref) => CoverService(ref.watch(documentsDirProvider)),
+);
+
+/// Ricerca delle copertine online. Senza stato condiviso tranne la cache degli
+/// indici di Libretro, che per la ricerca in blocco fa la differenza.
+final Provider<OnlineCoverService> onlineCoverServiceProvider = Provider<OnlineCoverService>(
+  (Ref ref) => OnlineCoverService(),
 );
 
 final Provider<CatalogRepository> catalogRepositoryProvider = Provider<CatalogRepository>(

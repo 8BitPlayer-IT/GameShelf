@@ -113,3 +113,38 @@ Lo schema è in `lib/data/sql/schema.drift` (versione 5), i passi di migrazione 
 - I percorsi delle copertine nel database sono relativi (`covers/<nome>.jpg`) e si risolvono
   a runtime sulla cartella dei documenti: per questo un backup resta valido anche dopo un
   cambio di `applicationId`, che quella cartella la sposta.
+
+## Copertine online (`lib/data/covers/`)
+
+- La regola che comanda su tutto: **nel dubbio nessuna copertina**. Una copertina
+  sbagliata è l'unico esito davvero da evitare, perché l'utente la vede e non sa
+  perché è lì. Niente elenchi di candidati fra cui scegliere: una proposta o zero.
+- `cover_routes.dart` è la tabella console → fonti. I nomi dei depositi Libretro
+  sono stati verificati contro l'elenco reale dell'organizzazione e **non si
+  indovinano** (`Sega_-_Master_System_-_Mark_III`, `Atari_-_8-bit_Family`). Una
+  console che non è nella mappa non viene cercata: Android è fuori di proposito,
+  perché Google Play non ha una ricerca pubblica.
+- Senza console indicata si prova **solo Steam**: provare tutte le fonti «nel
+  dubbio» moltiplicherebbe le occasioni di sbagliare.
+- L'indice dei nomi di Libretro sta negli **assets** (`assets/copertine/*.txt.gz`,
+  96.505 nomi in 0,9 MB) e lo genera `tool/genera_indici_copertine.dart` con un
+  clone senza immagini. Non si può chiedere a GitHub al volo: l'API degli alberi
+  costa 5,5 MB per lo SNES e per la PlayStation risponde 500. Conseguenza buona: la
+  corrispondenza si calcola offline, e la rete serve solo per l'immagine.
+- `title_match.dart`: i nomi di Libretro seguono le convenzioni della
+  preservazione. Articolo in coda dopo la virgola, due punti scritti « - », regione
+  fra parentesi. Perciò si togliono parentesi e articoli da **entrambe** le parti.
+  `I`, `V` e `X` da soli non diventano numeri: `Mega Man X` non è `Mega Man 10`.
+  La somiglianza approssimata ha due sbarramenti, e vanno tenuti: i numeri devono
+  coincidere (`FIFA 21` non è `FIFA 22`) e il primo deve staccare il secondo.
+- Ogni fonte che risponde con un elenco (Steam, eShop, App Store) deve passare per
+  `titlesMatch`: cercando «The Witcher 3» il primo risultato che Steam restituisce
+  davvero è la colonna sonora del remaster.
+- Le immagini arrivano di forme diverse (2:3, 3:5, quadrate, perfino orizzontali) e
+  `frameDownloadedCover` le incornicia in 3:4 su uno sfondo sfocato ricavato da
+  loro stesse. Così il database e tutta l'interfaccia continuano a vedere solo 3:4,
+  e non si taglia via il titolo del gioco.
+- Il permesso `INTERNET` nel manifest esiste **solo** per questo. Se un giorno
+  sparisse la ricerca delle copertine, va tolto anche il permesso, e va
+  riscritto il paragrafo sulla privacy nel README e in Impostazioni: sono una
+  promessa pubblica, non un commento.

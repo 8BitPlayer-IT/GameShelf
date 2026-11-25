@@ -50,8 +50,14 @@
             android:value="2" />
     </application>
 
-    <!-- L'app funziona interamente offline e non deve dichiarare permessi a runtime.
-         Se un plugin ne unisce uno, va rimosso qui con tools:node="remove". -->
+    <!-- INTERNET è l'unico permesso che l'app dichiara, e serve a una cosa sola: scaricare
+         la copertina di un gioco quando l'utente la cerca. Android non lo chiede all'utente,
+         quindi la trasparenza sta nel codice, in Impostazioni e nel README. Nessun'altra
+         funzione dell'app tocca la rete. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <!-- Nessun altro permesso a runtime. Se un plugin ne unisce uno, va rimosso qui con
+         tools:node="remove", come i due sotto. -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" tools:node="remove"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" tools:node="remove"/>
 

@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:typed_data';
 import 'dart:ui' show Rect;
 
 import 'package:path/path.dart' as p;
@@ -49,6 +50,19 @@ class CoverService {
         bottom: bottom,
       ),
     );
+    return relative;
+  }
+
+  /// Salva una copertina scaricata da internet e restituisce il percorso
+  /// relativo. L'immagine viene incorniciata in 3:4 (vedi
+  /// `frameDownloadedCover`), così nel database entra una copertina come tutte
+  /// le altre: niente di speciale da ricordare per quelle venute da fuori.
+  Future<String> saveDownloaded(Uint8List bytes) async {
+    final String relative = p.posix.join('covers', '${const Uuid().v4()}.jpg');
+    final File target = fileFor(relative);
+    await target.parent.create(recursive: true);
+    final String targetPath = target.path;
+    await Isolate.run(() => frameDownloadedCover(bytes: bytes, targetPath: targetPath));
     return relative;
   }
 

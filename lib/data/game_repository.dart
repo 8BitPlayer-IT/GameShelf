@@ -192,6 +192,41 @@ class GameRepository {
   /// Crea o aggiorna un gioco con copie, generi, console di uscita e appartenenze,
   /// in una transazione. Sostituisce gli elenchi, non li somma.
   /// Lancia [GameValidationException] se la scheda non è valida.
+  /// I giochi senza copertina, con i nomi delle console che servono a cercarla:
+  /// prima quelle delle copie possedute, poi quelle di uscita, nello stesso
+  /// ordine che usa l'editor.
+  ///
+  /// Serve alla ricerca in blocco dalle impostazioni. Il separatore è `§§`
+  /// perché un nome di console può contenere la barra verticale: «Xbox Series
+  /// X|S» con un `|` come separatore si spezzerebbe in due console inesistenti.
+  Future<List<GameWithoutCover>> gamesWithoutCover() async {
+    final List<QueryRow> rows = await db
+        .customSelect(
+          'SELECT g.id, g.title, '
+          "(SELECT group_concat(c.name, '§§') FROM game_copies gc "
+          'JOIN consoles c ON c.id = gc.console_id WHERE gc.game_id = g.id) AS copie, '
+          "(SELECT group_concat(c.name, '§§') FROM game_platforms gp "
+          'JOIN consoles c ON c.id = gp.console_id WHERE gp.game_id = g.id) AS piattaforme '
+          'FROM games g WHERE g.cover_path IS NULL ORDER BY g.sort_title, g.id',
+        )
+        .get();
+
+    return <GameWithoutCover>[
+      for (final QueryRow r in rows)
+        GameWithoutCover(
+          id: r.read<int>('id'),
+          title: r.read<String>('title'),
+          consoles: <String>{
+            for (final String part in <String>[
+              ...?r.readNullable<String>('copie')?.split('§§'),
+              ...?r.readNullable<String>('piattaforme')?.split('§§'),
+            ])
+              if (part.isNotEmpty) part,
+          }.toList(),
+        ),
+    ];
+  }
+
   Future<int> save(GameDraft draft, {bool ignoreArticles = true}) {
     final List<String> errors = draft.validate(currentYear: _now().year);
     if (errors.isNotEmpty) throw GameValidationException(errors);
@@ -450,6 +485,17 @@ class GameRepository {
     format: CopyFormat.fromDb(r.read<String>('format')),
   );
 
+  /// Mette su un gioco già salvato una copertina trovata online.
+  ///
+  /// Nel database va il percorso **relativo** (`covers/<uuid>.jpg`), come per
+  /// quelle scelte dalla galleria: una copertina scaricata non è diversa dalle
+  /// altre e sopravvive a un ripristino.
+  Future<void> setCover(int id, String relativePath) {
+    return (db.update(db.games)..where((Games g) => g.id.equals(id))).write(
+      GamesCompanion(coverPath: Value<String?>(relativePath), updatedAt: Value<DateTime>(_now())),
+    );
+  }
+
   Future<void> setStatus(int id, GameStatus status) {
     return (db.update(db.games)..where((Games g) => g.id.equals(id))).write(
       GamesCompanion(status: Value<String>(status.dbValue), updatedAt: Value<DateTime>(_now())),
@@ -677,4 +723,15 @@ class GameRepository {
     final String v => Variable<String>(v),
     final Object v => Variable<Object>(v),
   };
+}
+
+/// Un gioco senza copertina, con le console su cui cercarla.
+class GameWithoutCover {
+  const GameWithoutCover({required this.id, required this.title, required this.consoles});
+
+  final int id;
+  final String title;
+
+  /// Nomi delle console, nell'ordine in cui vanno provate le fonti.
+  final List<String> consoles;
 }

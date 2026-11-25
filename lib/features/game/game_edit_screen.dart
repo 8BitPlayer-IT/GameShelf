@@ -14,6 +14,7 @@ import '../../domain/normalizer.dart';
 import '../../ui/console_icons.dart';
 import '../../ui/widgets.dart';
 import 'cover_crop_screen.dart';
+import 'cover_proposal.dart';
 
 class GameEditScreen extends ConsumerStatefulWidget {
   const GameEditScreen({super.key, this.gameId, this.collectionId});
@@ -97,6 +98,18 @@ class _GameEditScreenState extends ConsumerState<GameEditScreen> {
     }
 
     setState(() => _saving = true);
+
+    // Copertina online: solo per un gioco nuovo che non ne ha ancora una, e
+    // prima di scrivere sul database, così la copertina entra insieme al resto
+    // in una sola scrittura. La proposta automatica avviene una volta sola,
+    // alla nascita del gioco: dopo c'è il pulsante «Cerca online».
+    bool noCoverFound = false;
+    if (draft.id == null && draft.coverPath == null) {
+      final ({bool applied, bool nothingFound}) outcome = await _proposeCover(draft);
+      if (!mounted) return;
+      noCoverFound = outcome.nothingFound;
+    }
+
     try {
       await ref.read(gameRepositoryProvider).save(draft);
       if (_originalCover != null && _originalCover != draft.coverPath) {
@@ -104,7 +117,10 @@ class _GameEditScreenState extends ConsumerState<GameEditScreen> {
       }
       HapticFeedback.mediumImpact();
       if (!mounted) return;
-      showMessage(context, draft.id == null ? '«${draft.title.trim()}» aggiunto alla libreria' : 'Modifiche salvate');
+      final String saved = draft.id == null
+          ? '«${draft.title.trim()}» aggiunto alla libreria'
+          : 'Modifiche salvate';
+      showMessage(context, noCoverFound ? '$saved. Nessuna copertina trovata.' : saved);
       _close();
     } catch (error) {
       if (mounted) showMessage(context, describeSaveError(error));
@@ -225,6 +241,66 @@ class _GameEditScreenState extends ConsumerState<GameEditScreen> {
     );
   }
 
+  /// I nomi delle console del gioco: prima quelle delle copie possedute, poi
+  /// quelle di uscita. La ricerca segue le fonti della prima che ne ha.
+  List<String> _consoleNames(GameDraft draft) {
+    final Map<int, ConsoleRow> consoles = <int, ConsoleRow>{
+      for (final ConsoleRow c in ref.read(consolesProvider).value ?? const <ConsoleRow>[]) c.id: c,
+    };
+    final List<String> names = <String>[];
+    for (final int id in <int>[
+      for (final CopyDraft c in draft.copies) c.consoleId,
+      ...draft.platformIds,
+    ]) {
+      final String? name = consoles[id]?.name;
+      if (name != null && !names.contains(name)) names.add(name);
+    }
+    return names;
+  }
+
+  /// Cerca la copertina online e, se l'utente accetta la proposta, la salva e
+  /// la mette nel draft.
+  ///
+  /// `nothingFound` è vero solo quando la ricerca è davvero avvenuta e non ha
+  /// dato niente: senza rete resta falso e non si dice nulla.
+  Future<({bool applied, bool nothingFound})> _proposeCover(GameDraft draft) async {
+    final CoverLookup lookup = await lookupCover(
+      ref.read(onlineCoverServiceProvider),
+      title: draft.title,
+      consoles: _consoleNames(draft),
+    );
+    if (!mounted) return (applied: false, nothingFound: false);
+
+    final CoverProposal? proposal = lookup.proposal;
+    if (proposal == null) return (applied: false, nothingFound: lookup.worthTelling);
+    if (!await showCoverProposal(context, proposal)) return (applied: false, nothingFound: false);
+
+    final String relative = await ref.read(coverServiceProvider).saveDownloaded(proposal.bytes);
+    draft.coverPath = relative;
+    return (applied: true, nothingFound: false);
+  }
+
+  /// Il pulsante «Cerca online», per i giochi già in libreria.
+  Future<void> _searchCoverOnline() async {
+    _dropFocus();
+    final GameDraft? draft = _draft;
+    if (draft == null) return;
+    draft.title = _title.text;
+    if (draft.title.trim().isEmpty) {
+      showMessage(context, 'Scrivi prima il titolo del gioco.');
+      return;
+    }
+
+    setState(() => _processingCover = true);
+    try {
+      final ({bool applied, bool nothingFound}) outcome = await _proposeCover(draft);
+      if (!mounted) return;
+      if (outcome.nothingFound) showMessage(context, 'Nessuna copertina trovata');
+    } finally {
+      if (mounted) setState(() => _processingCover = false);
+    }
+  }
+
   Widget _coverSection(GameDraft draft) {
     return SectionCard(
       title: 'Copertina',
@@ -252,6 +328,12 @@ class _GameEditScreenState extends ConsumerState<GameEditScreen> {
                   icon: const Icon(Icons.photo_library_outlined),
                   label: const Text('Scegli dalla galleria'),
                 ),
+                if (draft.coverPath == null)
+                  TextButton.icon(
+                    onPressed: _processingCover ? null : _searchCoverOnline,
+                    icon: const Icon(Icons.travel_explore),
+                    label: const Text('Cerca online'),
+                  ),
                 if (draft.coverPath != null)
                   TextButton.icon(
                     onPressed: () => _edit((GameDraft d) => d.coverPath = null),
