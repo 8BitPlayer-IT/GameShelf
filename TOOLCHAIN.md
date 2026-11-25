@@ -44,6 +44,19 @@ Sempre con `--split-per-abi`: Gradle somma al numero di build un valore diverso 
 (2000 per arm64), quindi un APK universale porta un numero più basso di quelli già installati e Android
 lo rifiuta come retrocessione.
 
+I file che ne escono si chiamano `app-arm64-v8a-release.apk` e simili: va bene per una
+cartella di lavoro, non per una pagina da cui scarica altra gente. Prima di pubblicare una
+release:
+
+```powershell
+.\tool\prepara_release.ps1
+```
+
+Copia i tre APK in `build\release` chiamandoli `GameShelf-<versione>-<arm64|arm32|x86_64>.apk`,
+legge la versione dal `pubspec.yaml` (così il nome non può dire una bugia) e stampa le
+impronte SHA-256 da incollare nelle note della release. Rinominare non cambia i byte, quindi
+le impronte restano valide.
+
 ## Firma dell'app
 
 Android installa solo APK firmati e accetta un aggiornamento solo se la firma è **identica** a quella
@@ -86,5 +99,5 @@ salvato **senza BOM**. Lettere, cifre e `-_.` sono la scelta sicura.
 Per sapere con quale certificato è firmato un APK:
 
 ```powershell
-& "$env:LOCALAPPDATA\Android\Sdk\build-tools\36.0.0\apksigner.bat" verify --print-certs .\app-arm64-v8a-release.apk
+& "$env:LOCALAPPDATA\Android\Sdk\build-tools\36.0.0\apksigner.bat" verify --print-certs .\GameShelf-5.5.1-arm64.apk
 ```

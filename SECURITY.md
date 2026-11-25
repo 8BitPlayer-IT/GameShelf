@@ -22,7 +22,7 @@ Ogni release pubblica l'impronta SHA-256 dei file. Prima di installare puoi cont
 hai scaricato sia quello:
 
 ```powershell
-Get-FileHash .\app-arm64-v8a-release.apk -Algorithm SHA256
+Get-FileHash .\GameShelf-5.5.1-arm64.apk -Algorithm SHA256
 ```
 
 Se l'impronta non coincide con quella scritta nella release, **non installare quel file**.
@@ -42,7 +42,7 @@ RSA 4096 bit, schemi di firma v2 e v3
 Per leggerla da un APK serve `apksigner`, che arriva con l'SDK di Android:
 
 ```powershell
-& "$env:LOCALAPPDATA\Android\Sdk\build-tools\36.0.0\apksigner.bat" verify --print-certs .\app-arm64-v8a-release.apk
+& "$env:LOCALAPPDATA\Android\Sdk\build-tools\36.0.0\apksigner.bat" verify --print-certs .\GameShelf-5.5.1-arm64.apk
 ```
 
 Se l'impronta non è questa, quell'APK **non** l'ha pubblicato questo progetto, anche se il
