@@ -47,6 +47,9 @@ Gli aggiornamenti si installano sopra la versione precedente senza perdere i dat
 firmato con la stessa chiave. Un APK che compili tu ha una firma diversa: in quel caso fai prima un
 backup, disinstalla, installa il tuo e ripristina.
 
+Prima di installare puoi controllare che il file sia davvero quello pubblicato qui e che sia
+firmato con la chiave del progetto: [SECURITY.md](SECURITY.md) spiega come, in due comandi.
+
 ## Numero di versione
 
 La versione segue lo schema `x.y.z`:

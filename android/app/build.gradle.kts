@@ -48,6 +48,12 @@ android {
 
     signingConfigs {
         create("release") {
+            // Schemi di firma: v2 sempre, e anche v3. Da Android 9 il v3 ha la precedenza, ed e'
+            // la premessa per poter un giorno sostituire la chiave senza costringere tutti a
+            // disinstallare. Gli Android precedenti ignorano il blocco v3 e verificano il v2.
+            enableV2Signing = true
+            enableV3Signing = true
+
             if (keystorePropertiesFile.exists()) {
                 storeFile = file(keystoreProperties.getProperty("storeFile"))
                 storePassword = keystoreProperties.getProperty("storePassword")
