@@ -50,6 +50,9 @@ app.*.map.json
 # Mai nel repository, in nessuna cartella: firme e pacchetti compilati
 *.jks
 *.keystore
+*.p12
+*.pfx
 key.properties
+key.properties.*
 *.apk
 *.aab

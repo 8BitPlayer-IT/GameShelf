@@ -57,3 +57,34 @@ si è fatto prima un backup.
   chiave.
 - Chi pubblica le release tiene **una copia della chiave fuori dal computer**: perderla significa non
   poter più aggiornare le installazioni esistenti.
+
+### Crearsi una chiave
+
+Chi vuole firmare le proprie build con una chiave propria la genera una volta sola, **fuori
+dalla cartella del progetto**:
+
+```powershell
+& "$env:ProgramFiles\Android\Android Studio\jbr\bin\keytool.exe" -genkeypair -v -keystore "<cartella fuori dal progetto>\gameshelf-release.p12" -alias gameshelf -keyalg RSA -keysize 4096 -validity 10950
+```
+
+Il formato PKCS12 (`.p12`, il default di `keytool`) usa **una sola password** per il
+contenitore e per la chiave. Il certificato che ne esce finisce dentro ogni APK, quindi nel
+campo `CN` conviene mettere il nome con cui si pubblica, non il proprio.
+
+Poi `android/key.properties`, con i percorsi scritti con le barre in avanti:
+
+```
+storeFile=C:/percorso/fuori/dal/progetto/gameshelf-release.p12
+storePassword=<la password>
+keyAlias=gameshelf
+keyPassword=<la stessa password>
+```
+
+Il file è letto come un `.properties` Java: la password non deve contenere `\` e il file va
+salvato **senza BOM**. Lettere, cifre e `-_.` sono la scelta sicura.
+
+Per sapere con quale certificato è firmato un APK:
+
+```powershell
+& "$env:LOCALAPPDATA\Android\Sdk\build-tools\36.0.0\apksigner.bat" verify --print-certs .\app-arm64-v8a-release.apk
+```
